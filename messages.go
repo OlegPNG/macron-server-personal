@@ -16,22 +16,24 @@ type ClientInbound struct {
 }
 
 type ClientResponse struct {
-    Type	    string	`json:"type"`
-    Error	    string	`json:"error,omitempty"`
-    ReceiverName    string	`json:"receiver_name,omitempty"`
-    Receivers	    *[]string   `json:"receivers,omitempty"`
-    Functions	    *[]string   `json:"functions,omitempty"`
+    Type	    string		`json:"type"`
+    Error	    string		`json:"error,omitempty"`
+    ReceiverName    string		`json:"receiver_name,omitempty"`
+    Receivers	    *[]string		`json:"receivers,omitempty"`
+    Functions	    *[]MacronFunction   `json:"functions,omitempty"`
 }
 
 type ReceiverInbound struct {
-    Type	    string  `json:"type"`
-    Password	    string  `json:"password"`
-    ReceiverName    string `json:"receiver_name"`
+    Type	    string		`json:"type"`
+    Password	    string  		`json:"password"`
+    ReceiverName    string  		`json:"receiver_name"`
+    Functions	    *[]MacronFunction	`json:"functions,omitempty"`
 }
 
 type ReceiverResponse struct {
-    Type	string `json:"type"`
-    Error	string `json:"error,omitempty"`
+    Type	string	`json:"type"`
+    Id		*int	`json:"id,omitempty"`
+    Error	string	`json:"error,omitempty"`
 }
 
 func sendJsonWs(ws *websocket.Conn, payload interface{}) {

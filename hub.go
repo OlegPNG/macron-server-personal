@@ -17,12 +17,6 @@ var upgrader = websocket.Upgrader{
 }
 
 
-type Receiver struct {
-    deviceName	string
-    conn	*websocket.Conn
-    hub		*Hub
-    egress	chan[]byte
-}
 
 type Hub struct {
     client	*Client
@@ -33,26 +27,50 @@ type Hub struct {
 func (hub *Hub) GetReceivers() []string {
     r := make([]string, 0)
     for _, value := range hub.receivers {
-	r = append(r, value.deviceName)
+	r = append(r, value.name)
     }
 
     log.Printf("Number of receivers: %d", len(r))
     return r
 }
 
-func (hub *Hub) GetFunctions(name string) ([]string, error) {
+func (hub *Hub) GetFunctions(name string) error {
     if name == "" {
-	return nil, errors.New("Receiver Name Empty.")
+	return errors.New("Receiver Name Empty.")
     }
     if hub.receivers[name] == nil {
-	return nil, fmt.Errorf("Receiver not found with name: %s", name)
+	return fmt.Errorf("Receiver not found with name: %s", name)
     }
-    functionList := []string{"Foobar", "Firefox", "Alacritty"}
-    return functionList, nil
+    hub.receivers[name].getFunctions()
+    return nil
+}
+
+func (hub *Hub) SendFunctions(functions *[]MacronFunction) {
+    log.Printf("Functions: %v", functions)
+    response := ClientResponse {
+	Type: "functions",
+	Functions: functions,
+    }
+    bytes, _ := json.Marshal(&response)
+    
+    hub.client.egress <- bytes
 }
 
 func (hub *Hub) RemoveReceiver(name string) {
     delete(hub.receivers, name)
+}
+
+func (hub *Hub) ExecFunction(name string, id int) error {
+    if name == "" {
+	return errors.New("Receiver Name Empty.")
+    }
+    receiver := hub.receivers[name]
+    if receiver == nil {
+	return fmt.Errorf("Receiver not found with name: %s", name)
+    }
+    
+    receiver.execFunction(id)
+    return nil
 }
 
 func (hub *Hub) HandlerClientPassword(w http.ResponseWriter, r *http.Request) {
@@ -80,11 +98,14 @@ func (hub *Hub) HandlerClientPassword(w http.ResponseWriter, r *http.Request) {
 	log.Printf("Error unmarshalling request: %v", err)
 	//hub.wsWriteClientResponse(ws, "error", nil, "Invalid JSON format") 
 	client.sendErrorResponse("Invalid JSON format")
+	client.close()
+	return
     }
     if authMsg.Password != hub.config.Server.Password {
 	log.Printf("Client failed password authentication.")
 	//hub.wsWriteClientResponse(ws, "error", nil, "Incorrect password.")
 	client.sendErrorResponse("Incorrect password.")
+	client.close()
 	return
     }
 
@@ -151,7 +172,7 @@ func (hub *Hub) HandlerReceiverPassword(w http.ResponseWriter, r *http.Request) 
 	return
     }
     receiver := &Receiver {
-	deviceName: authMsg.ReceiverName,
+	name: authMsg.ReceiverName,
 	conn: ws,
 	hub: hub,
 	egress: make(chan []byte),
@@ -200,48 +221,13 @@ func (hub *Hub) HandlerReceiver(w http.ResponseWriter, r *http.Request) {
     }
 
     receiver := &Receiver{
-	deviceName: msg.ReceiverName,
+	name: msg.ReceiverName,
 	conn: ws,
 	hub: hub,
 	egress: make(chan []byte),
     }
 
-    hub.receivers[receiver.deviceName] = receiver
+    hub.receivers[receiver.name] = receiver
 }
 
 
-func (r *Receiver) readPump() {
-    defer func() {
-	r.hub.RemoveReceiver(r.deviceName)
-	r.conn.Close()
-    }()
-
-    for {
-	var message ReceiverInbound
-	err := r.conn.ReadJSON(&message)
-	if err != nil {
-	    log.Printf("error: %v", err)
-	    break
-	}
-	log.Printf("Receiver message: %v", message)
-    }
-}
-
-func (r *Receiver) writePump() {
-    defer func() {
-	r.hub.RemoveReceiver(r.deviceName)
-	r.conn.Close()
-    }()
-
-    for {
-	select {
-	case message, ok := <- r.egress:
-	    if !ok {
-		r.conn.WriteMessage(websocket.CloseMessage, []byte{})
-		log.Println("Receiver egress error")
-	    }
-	    log.Println("Sending receiver message: ", string(message))
-	    sendJsonWs(r.conn, message)
-	}
-    }
-}

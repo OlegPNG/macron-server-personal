@@ -19,9 +19,11 @@ func (c *Client) sendErrorResponse(error string) {
     }
 
     c.conn.WriteJSON(response)
+}
+func (c *Client) close() {
     c.conn.WriteMessage(websocket.CloseAbnormalClosure, []byte(""))
     c.conn.Close()
-
+    
     c.hub.client = nil
 }
 
@@ -43,7 +45,7 @@ func (c *Client) sendReceiverResponse(receivers *[]string) {
     c.conn.WriteJSON(response)
 }
 
-func (c *Client) sendFunctionResponse(name string, functions *[]string) {
+func (c *Client) sendFunctionResponse(name string, functions *[]MacronFunction) {
     response := ClientResponse {
 	Type: "functions",
 	ReceiverName: name,
@@ -75,11 +77,13 @@ func (c *Client) readPump() {
 	    log.Println("Sending list of receivers")
 	case "functions":
 	    log.Println("Client requesting functions...")
-	    functions, err := c.hub.GetFunctions(message.ReceiverName)
+	    err := c.hub.GetFunctions(message.ReceiverName)
 	    if err != nil {
 		c.sendErrorResponse(err.Error())
 	    }
-	    c.sendFunctionResponse(message.ReceiverName, &functions)
+	case "exec":
+	    c.hub.ExecFunction(message.ReceiverName, *message.FunctionId)
+
 	}
     }
 }
