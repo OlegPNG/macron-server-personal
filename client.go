@@ -56,7 +56,7 @@ func (c *Client) sendFunctionResponse(name string, functions *[]MacronFunction) 
 
 func (c *Client) readPump() {
     defer func() {
-	c.conn.Close()
+	c.close()
     }()
 
     for {
@@ -90,7 +90,7 @@ func (c *Client) readPump() {
 
 func (c *Client) writePump() {
     defer func() {
-	c.conn.Close()
+	c.close()
     }()
     for {
 	select {
