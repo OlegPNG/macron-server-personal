@@ -35,6 +35,7 @@ func (hub *Hub) GetReceivers() []string {
 }
 
 func (hub *Hub) GetFunctions(name string) error {
+    log.Printf("Receiver name requested: %s", name)
     if name == "" {
 	return errors.New("Receiver Name Empty.")
     }

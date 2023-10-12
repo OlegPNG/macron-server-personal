@@ -76,7 +76,7 @@ func (c *Client) readPump() {
 	    c.sendReceiverResponse(&receivers)
 	    log.Println("Sending list of receivers")
 	case "functions":
-	    log.Println("Client requesting functions...")
+	    log.Printf("Client requesting functions from: %s", message.ReceiverName)
 	    err := c.hub.GetFunctions(message.ReceiverName)
 	    if err != nil {
 		log.Printf("Error Getting Functions: %v", err.Error())
