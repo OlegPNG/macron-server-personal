@@ -79,6 +79,7 @@ func (c *Client) readPump() {
 	    log.Println("Client requesting functions...")
 	    err := c.hub.GetFunctions(message.ReceiverName)
 	    if err != nil {
+		log.Printf("Error Getting Functions: %v", err.Error())
 		c.sendErrorResponse(err.Error())
 	    }
 	case "exec":

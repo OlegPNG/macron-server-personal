@@ -21,6 +21,7 @@ type ServerConfig struct {
     Password    string
 }
 
+
 func parseConfig(dir string) (*Config, error) {
     configBytes, err := os.ReadFile(dir)
     if err != nil {

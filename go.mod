@@ -8,4 +8,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 )
 
-require github.com/pelletier/go-toml/v2 v2.1.0
+require (
+	github.com/google/uuid v1.3.1
+	github.com/pelletier/go-toml/v2 v2.1.0
+)
