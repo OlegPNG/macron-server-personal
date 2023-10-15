@@ -25,6 +25,7 @@ type ClientResponse struct {
 
 type ReceiverInbound struct {
     Type	    string		`json:"type"`
+    ClientId	    string		`json:"client_id"`
     Password	    string  		`json:"password"`
     ReceiverName    string  		`json:"receiver_name"`
     Functions	    *[]MacronFunction	`json:"functions,omitempty"`
@@ -32,6 +33,7 @@ type ReceiverInbound struct {
 
 type ReceiverResponse struct {
     Type	string	`json:"type"`
+    ClientId	string	`json:"client_id"`
     Id		*int	`json:"id,omitempty"`
     Error	string	`json:"error,omitempty"`
 }

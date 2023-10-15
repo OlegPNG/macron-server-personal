@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -19,7 +20,8 @@ var upgrader = websocket.Upgrader{
 
 
 type Hub struct {
-    client	*Client
+    //client	*Client
+    clients	map[uuid.UUID] *Client
     receivers	map[string] *Receiver
     config	*Config
 }
@@ -46,7 +48,17 @@ func (hub *Hub) GetFunctions(name string) error {
     return nil
 }
 
-func (hub *Hub) SendFunctions(functions *[]MacronFunction) {
+//func (hub *Hub) SendFunctions(functions *[]MacronFunction) {
+//    log.Printf("Functions: %v", functions)
+//    response := ClientResponse {
+//	Type: "functions",
+//	Functions: functions,
+//    }
+//    bytes, _ := json.Marshal(&response)
+//    
+//    hub.client.egress <- bytes
+//}
+func (hub *Hub) SendFunctions(id uuid.UUID, functions *[]MacronFunction) {
     log.Printf("Functions: %v", functions)
     response := ClientResponse {
 	Type: "functions",
@@ -54,7 +66,7 @@ func (hub *Hub) SendFunctions(functions *[]MacronFunction) {
     }
     bytes, _ := json.Marshal(&response)
     
-    hub.client.egress <- bytes
+    hub.clients[id].egress <- bytes
 }
 
 func (hub *Hub) RemoveReceiver(name string) {
@@ -75,12 +87,12 @@ func (hub *Hub) ExecFunction(name string, id int) error {
 }
 
 func (hub *Hub) HandlerClientPassword(w http.ResponseWriter, r *http.Request) {
-    if hub.client != nil {
-	log.Println("Client already exists")
-	log.Printf("Current Client: %v", hub.client)
-	w.WriteHeader(400)
-	return
-    }
+    //if hub.client != nil {
+    //    log.Println("Client already exists")
+    //    log.Printf("Current Client: %v", hub.client)
+    //    w.WriteHeader(400)
+    //    return
+    //}
     ws, err := upgrader.Upgrade(w, r, nil)
     if err != nil {
 	log.Println(err)
@@ -110,7 +122,9 @@ func (hub *Hub) HandlerClientPassword(w http.ResponseWriter, r *http.Request) {
 	return
     }
 
-    hub.client = client
+    id := uuid.New()
+    hub.clients[id] = client
+    //hub.client = client
     //hub.wsWriteClientResponse(ws, "auth_success", nil, "")
     client.sendMessage("auth_success")
     
@@ -118,38 +132,38 @@ func (hub *Hub) HandlerClientPassword(w http.ResponseWriter, r *http.Request) {
     go client.writePump()
 }
 
-func (hub *Hub) HandlerClient(w http.ResponseWriter, r *http.Request) {
-
-    ws, err := upgrader.Upgrade(w, r, nil)
-    if err != nil {
-	log.Println(err)
-	ws.Close()
-	return
-    }
-
-    if hub.client != nil {
-	client := &Client {
-	    hub: hub,
-	    conn: ws,
-	    egress: make(chan []byte),
-	}
-	hub.client = client
-    } else {
-	log.Println("Client already exists")
-	log.Printf("Current Client: %v", hub.client)
-	ws.Close()
-	return
-    }
-
-    confirmation := ClientResponse{
-	Type: "auth_success",
-	Receivers: nil,
-    }
-    sendJsonWs(ws, confirmation)
-
-    go hub.client.readPump()
-    go hub.client.writePump()
-}
+//func (hub *Hub) HandlerClient(w http.ResponseWriter, r *http.Request) {
+//
+//    ws, err := upgrader.Upgrade(w, r, nil)
+//    if err != nil {
+//	log.Println(err)
+//	ws.Close()
+//	return
+//    }
+//
+//    if hub.client != nil {
+//	client := &Client {
+//	    hub: hub,
+//	    conn: ws,
+//	    egress: make(chan []byte),
+//	}
+//	hub.client = client
+//    } else {
+//	log.Println("Client already exists")
+//	log.Printf("Current Client: %v", hub.client)
+//	ws.Close()
+//	return
+//    }
+//
+//    confirmation := ClientResponse{
+//	Type: "auth_success",
+//	Receivers: nil,
+//    }
+//    sendJsonWs(ws, confirmation)
+//
+//    go hub.client.readPump()
+//    go hub.client.writePump()
+//}
 
 func (hub *Hub) HandlerReceiverPassword(w http.ResponseWriter, r *http.Request) {
     ws, err := upgrader.Upgrade(w, r, nil)
