@@ -80,7 +80,12 @@ func (r *Receiver) readPump() {
 	switch message.Type {
 	case "functions":
 	    log.Println("Receiver sending functions...")
-	    r.hub.SendFunctions(message.Functions)
+	    clientId := message.ClientId
+	    if err != nil {
+		log.Printf("error: %v", err)
+	    } else {
+		r.hub.SendFunctions(clientId, message.Functions)
+	    }
 	}
     }
 }

@@ -6,8 +6,8 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
 
-	"github.com/google/uuid"
 	"github.com/gorilla/websocket"
 )
 
@@ -20,10 +20,18 @@ var upgrader = websocket.Upgrader{
 
 
 type Hub struct {
-    //client	*Client
-    clients	map[uuid.UUID] *Client
+    sessions	map[string] *Session
+    clients	map[string] *Client
     receivers	map[string] *Receiver
     config	*Config
+}
+
+type Session struct {
+    //deviceName	string
+    expiry	time.Time
+}
+func(s *Session) isExpired() bool {
+    return s.expiry.Before(time.Now())
 }
 
 func (hub *Hub) GetReceivers() []string {
@@ -58,7 +66,7 @@ func (hub *Hub) GetFunctions(name string) error {
 //    
 //    hub.client.egress <- bytes
 //}
-func (hub *Hub) SendFunctions(id uuid.UUID, functions *[]MacronFunction) {
+func (hub *Hub) SendFunctions(id string, functions *[]MacronFunction) {
     log.Printf("Functions: %v", functions)
     response := ClientResponse {
 	Type: "functions",
@@ -86,119 +94,6 @@ func (hub *Hub) ExecFunction(name string, id int) error {
     return nil
 }
 
-func (hub *Hub) HandlerClientPassword(w http.ResponseWriter, r *http.Request) {
-    //if hub.client != nil {
-    //    log.Println("Client already exists")
-    //    log.Printf("Current Client: %v", hub.client)
-    //    w.WriteHeader(400)
-    //    return
-    //}
-    ws, err := upgrader.Upgrade(w, r, nil)
-    if err != nil {
-	log.Println(err)
-	ws.Close()
-	return
-    }
-
-    client := &Client{
-	hub: hub,
-	conn: ws,
-	egress: make(chan []byte),
-    }
-    var authMsg ClientInbound
-    err = ws.ReadJSON(&authMsg)
-    if err != nil {
-	log.Printf("Error unmarshalling request: %v", err)
-	//hub.wsWriteClientResponse(ws, "error", nil, "Invalid JSON format") 
-	client.sendErrorResponse("Invalid JSON format")
-	client.close()
-	return
-    }
-    if authMsg.Password != hub.config.Server.Password {
-	log.Printf("Client failed password authentication.")
-	//hub.wsWriteClientResponse(ws, "error", nil, "Incorrect password.")
-	client.sendErrorResponse("Incorrect password.")
-	client.close()
-	return
-    }
-
-    id := uuid.New()
-    hub.clients[id] = client
-    //hub.client = client
-    //hub.wsWriteClientResponse(ws, "auth_success", nil, "")
-    client.sendMessage("auth_success")
-    
-    go client.readPump()
-    go client.writePump()
-}
-
-//func (hub *Hub) HandlerClient(w http.ResponseWriter, r *http.Request) {
-//
-//    ws, err := upgrader.Upgrade(w, r, nil)
-//    if err != nil {
-//	log.Println(err)
-//	ws.Close()
-//	return
-//    }
-//
-//    if hub.client != nil {
-//	client := &Client {
-//	    hub: hub,
-//	    conn: ws,
-//	    egress: make(chan []byte),
-//	}
-//	hub.client = client
-//    } else {
-//	log.Println("Client already exists")
-//	log.Printf("Current Client: %v", hub.client)
-//	ws.Close()
-//	return
-//    }
-//
-//    confirmation := ClientResponse{
-//	Type: "auth_success",
-//	Receivers: nil,
-//    }
-//    sendJsonWs(ws, confirmation)
-//
-//    go hub.client.readPump()
-//    go hub.client.writePump()
-//}
-
-func (hub *Hub) HandlerReceiverPassword(w http.ResponseWriter, r *http.Request) {
-    ws, err := upgrader.Upgrade(w, r, nil)
-    if err != nil {
-	log.Println(err)
-	ws.Close()
-	return
-    }
-    log.Println("Receiver authenticating...")
-    
-    var authMsg ReceiverInbound
-    err = ws.ReadJSON(&authMsg)
-    if err != nil {
-	log.Printf("Error parsing receiver auth message: %v", err)
-	hub.wsWriteReceiverResponse(ws, "error", "Invalid JSON format.")
-	return
-    }
-    if authMsg.Password != hub.config.Server.Password {
-	log.Println("Receiver failed password authentication.")
-	hub.wsWriteReceiverResponse(ws, "auth_failure", "Incorrect password.")
-	return
-    }
-    receiver := &Receiver {
-	name: authMsg.ReceiverName,
-	conn: ws,
-	hub: hub,
-	egress: make(chan []byte),
-    }
-    hub.receivers[authMsg.ReceiverName] = receiver
-    hub.wsWriteReceiverResponse(ws, "auth_success", "")
-
-    go receiver.readPump()
-    go receiver.writePump()
-
-}
 
 func (hub *Hub) HandlerReceiver(w http.ResponseWriter, r *http.Request) {
     ws, err := upgrader.Upgrade(w, r, nil)

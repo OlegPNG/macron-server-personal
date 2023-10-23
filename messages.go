@@ -38,6 +38,7 @@ type ReceiverResponse struct {
     Error	string	`json:"error,omitempty"`
 }
 
+
 func sendJsonWs(ws *websocket.Conn, payload interface{}) {
     err := ws.WriteJSON(payload)
     if err != nil {

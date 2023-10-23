@@ -8,6 +8,7 @@ import (
 
 type Client struct {
     hub         *Hub
+    id		string
     conn        *websocket.Conn
     egress      chan[]byte
 }
@@ -24,7 +25,7 @@ func (c *Client) close() {
     c.conn.WriteMessage(websocket.CloseAbnormalClosure, []byte(""))
     c.conn.Close()
     
-    c.hub.client = nil
+    //c.hub.clients[c.] = nil
 }
 
 func (c *Client) sendMessage(msgType string) {
