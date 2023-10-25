@@ -16,7 +16,15 @@ type Credential struct {
 }
 
 type AuthenticationMessage struct {
+    Type		string	`json:"type"`
     SessionToken	string	`json:"session_token"`
+}
+
+func NewAuthMessage(token string) AuthenticationMessage {
+    return AuthenticationMessage{
+	Type: "auth",
+	SessionToken: token,
+    }
 }
 
 func (hub *Hub) LoginHandler(w http.ResponseWriter, r *http.Request) {
@@ -58,7 +66,7 @@ func (hub *Hub) LoginHandler(w http.ResponseWriter, r *http.Request) {
     
     log.Printf("Session with token %v exists: %v", token, ok)
 
-    msg := AuthenticationMessage{ token }
+    msg := NewAuthMessage(token)
     bytes, err := json.Marshal(msg)
     if err != nil {
 	log.Println("Error marshalling authentication response.")
@@ -137,6 +145,10 @@ func (hub *Hub) ReceiverHandler(w http.ResponseWriter, r *http.Request) {
     if err != nil {
 	log.Printf("Error parsing receiver auth message: %v", err)
 	hub.wsWriteReceiverResponse(ws, "error", "Invalid JSON format.")
+	return
+    }
+    if hub.receivers[authMsg.ReceiverName] != nil {
+	hub.wsWriteReceiverResponse(ws, "error", "Receiver name already exists.")
 	return
     }
 

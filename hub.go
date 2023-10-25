@@ -44,7 +44,7 @@ func (hub *Hub) GetReceivers() []string {
     return r
 }
 
-func (hub *Hub) GetFunctions(name string) error {
+func (hub *Hub) GetFunctions(name string, clientId string) error {
     log.Printf("Receiver name requested: %s", name)
     if name == "" {
 	return errors.New("Receiver Name Empty.")
@@ -52,7 +52,7 @@ func (hub *Hub) GetFunctions(name string) error {
     if hub.receivers[name] == nil {
 	return fmt.Errorf("Receiver not found with name: %s", name)
     }
-    hub.receivers[name].getFunctions()
+    hub.receivers[name].getFunctions(clientId)
     return nil
 }
 
@@ -74,7 +74,11 @@ func (hub *Hub) SendFunctions(id string, functions *[]MacronFunction) {
     }
     bytes, _ := json.Marshal(&response)
     
-    hub.clients[id].egress <- bytes
+    if client := hub.clients[id]; client != nil { 
+	hub.clients[id].egress <- bytes
+    } else {
+	log.Println("Receiver Response: ClientID provided does not exist...")
+    }
 }
 
 func (hub *Hub) RemoveReceiver(name string) {

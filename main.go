@@ -113,6 +113,7 @@ func setupRoutes(hub *Hub) chi.Router {
     v2Router := chi.NewRouter()
     v2Router.Post("/login", hub.LoginHandler)
     v2Router.Get("/client", hub.ClientHandler)
+    v2Router.Get("/receiver", hub.ReceiverHandler)
 
     v1Router.Mount("/ws", wsRouter)
     router.Mount("/v1", v1Router)
@@ -160,8 +161,8 @@ func startServer() {
         Addr: ":" + portString,
     }
 
-    //err = server.ListenAndServe()
-    err = server.ListenAndServeTLS("server.crt", "server.key")
+    err = server.ListenAndServe()
+    //err = server.ListenAndServeTLS("server.crt", "server.key")
     if err != nil {
         log.Fatal(err)
     }
