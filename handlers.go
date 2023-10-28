@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
 	"time"
 
@@ -62,4 +63,10 @@ func(hub *HttpHub) clientLoginHandler(w http.ResponseWriter, r *http.Request) {
 	Expires: expiresAt,
     })
 
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+    //http.ServeFile(w, r, "static/index.html")
+    tmpl := template.Must(template.ParseFiles("templates/index.tmpl.html"))
+    tmpl.Execute(w, "")
 }

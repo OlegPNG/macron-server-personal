@@ -97,7 +97,6 @@ func setupRoutes(hub *Hub) chi.Router {
     router.Use(middleware.RealIP)
     router.Use(middleware.Logger)
     router.Use(middleware.Recoverer)
-
     v1Router := chi.NewRouter()
     wsRouter := chi.NewRouter()
     
@@ -112,6 +111,10 @@ func setupRoutes(hub *Hub) chi.Router {
     v1Router.Mount("/ws", wsRouter)
     router.Mount("/v1", v1Router)
     router.Get("/info", hub.HandlerInfo)
+
+    fs := http.FileServer(http.Dir("./static/"))
+    router.Handle("/static/*", http.StripPrefix("/static/", fs))
+    router.HandleFunc("/", indexHandler)
     
     return router
 }
