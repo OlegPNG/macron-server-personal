@@ -244,3 +244,9 @@ func (hub *Hub) HandlerReceiverPassword(w http.ResponseWriter, r *http.Request) 
 func (hub *Hub) HandlerAuth(w http.ResponseWriter, r *http.Request) {
 
 }
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+    //http.ServeFile(w, r, "static/index.html")
+    tmpl := template.Must(template.ParseFiles("templates/index.tmpl.html"))
+    tmpl.Execute(w, "")
+}
