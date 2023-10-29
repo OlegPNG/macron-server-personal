@@ -637,10 +637,6 @@ video {
   display: grid;
 }
 
-.w-10\/12 {
-  width: 83.333333%;
-}
-
 .w-full {
   width: 100%;
 }
@@ -793,6 +789,10 @@ video {
 
   .lg\:flex {
     display: flex;
+  }
+
+  .lg\:w-10\/12 {
+    width: 83.333333%;
   }
 
   .lg\:basis-auto {
