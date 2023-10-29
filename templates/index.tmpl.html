@@ -6,7 +6,63 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link href="/static/css/style.css" rel="stylesheet" type="text/css">
     </head>
-    <body>
-        <h1 class="text-3xl text-sky-400 font-bold underline">Welcome to Macron!</h1>
+    <body class="bg-cat-crust">
+        <nav class="flex-wrap justify-start relative flex w-full items-center justify-between
+            py-3 lg:flex-wrap lg:justify-start lg:py-3">
+            <div class="flex w-full flex-wrap items-center jutify-between px-3">
+                <!-- Collapsible navigation container -->
+                <div
+                    class="!flex basis-auto items-center lg:!flex lg:basis-auto"
+                    id="navbarSupportedContent1">
+                    <!-- Logo -->
+                    <a
+                        class="mb-0 ml-2 mr-5 mt-0 flex items-center text-cat-text font-bold hover:text-cat-text focus:text-cat-text
+                        dark:text-cat-blue dark:hover:text-cat-yellow dark:focus:text-cat-green lg:mb-0 lg:mt-0"
+                        href="#">
+                        <!--<img
+                            src="https://tecdn.b-cdn.net/img/logo/te-transparent-noshadows.webp"
+                            style="height: 15px"
+                            alt="TE Logo"
+                            loading="lazy" />-->
+                        Macron
+                    </a>
+                    <!-- Left nav -->
+                    <ul class="list-style-none flex-row mr-auto flex pl-0 lg:flex-row">
+                        <li class="mb-0 pr-2 lg:mb-0 lg:pr-2">
+                            <a 
+                                class="text-cat-lavender hover:text-cat-yellow"
+                                href="#"
+                            >Home</a>
+                        </li>
+                        <li class="mb-0 pr-2 lg:mb-0 lg:pr-2">
+                            <a 
+                                class="text-cat-lavender hover:text-cat-yellow"
+                                href="#"
+                            >Dashboard</a>
+                        </li>
+                        <li class="mb-0 pr-2">
+                            <a 
+                                class="text-cat-lavender hover:text-cat-yellow"
+                                href="#"
+                            >Team</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="flex flex-row p-2 justify-center items-center">
+            <h1 class="font-bold text-3xl inline-block text-cat-text">Macron</h1>
+        </div>
+        <div class="flex flex-row w-full justify-center items-center">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 w-10/12">
+                <div class="p-3 px-8">
+                    <h1 class="text-xl text-cat-text">Build powerful macros and call them from anywhere with Macron</h1>
+                </div>
+                <div class="none lg:flex"></div>
+                <div class="p-3 px-8">
+                    <h1 class="text-xl text-cat-text">Welcome to Macron</h1>
+                </div>
+            </div>
+        </div>
     </body>
 </html>

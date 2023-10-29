@@ -4,5 +4,10 @@ module.exports = {
     theme: {
         extend: {},
     },
-    plugins: [],
+    plugins: [
+        require("@catppuccin/tailwindcss")({
+            prefix: "cat",
+            defaultFlavour: "frappe",
+        }),
+    ],
 }
