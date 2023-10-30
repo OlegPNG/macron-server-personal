@@ -37,6 +37,16 @@ func (r *Receiver) sendErrorResponse(error string) {
     r.egress <- bytes
 }
 
+func (r *Receiver) sendFunctionRequest(msgType string, clientId string) {
+    response := ReceiverResponse {
+	Type: msgType,
+	ClientId: clientId,
+    }
+
+    bytes, _ := json.Marshal(&response)
+
+    r.egress <- bytes
+}
 func (r *Receiver) sendMessage(msgType string) {
     response := ReceiverResponse {
 	Type: msgType,
@@ -59,8 +69,9 @@ func (r *Receiver) execFunction(id int) {
     r.egress <- bytes
 }
 
-func (r *Receiver) getFunctions() {
-    r.sendMessage("functions")
+func (r *Receiver) getFunctions(clientId string) {
+    //r.sendMessage("functions")
+    r.sendFunctionRequest("functions", clientId)
 }
 
 func (r *Receiver) readPump() {
@@ -80,7 +91,12 @@ func (r *Receiver) readPump() {
 	switch message.Type {
 	case "functions":
 	    log.Println("Receiver sending functions...")
-	    r.hub.SendFunctions(message.Functions)
+	    clientId := message.ClientId
+	    if err != nil {
+		log.Printf("error: %v", err)
+	    } else {
+		r.hub.SendFunctions(clientId, message.Functions)
+	    }
 	}
     }
 }

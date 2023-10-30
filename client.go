@@ -8,6 +8,7 @@ import (
 
 type Client struct {
     hub         *Hub
+    id		string
     conn        *websocket.Conn
     egress      chan[]byte
 }
@@ -24,7 +25,7 @@ func (c *Client) close() {
     c.conn.WriteMessage(websocket.CloseAbnormalClosure, []byte(""))
     c.conn.Close()
     
-    c.hub.client = nil
+    //c.hub.clients[c.] = nil
 }
 
 func (c *Client) sendMessage(msgType string) {
@@ -77,7 +78,7 @@ func (c *Client) readPump() {
 	    log.Println("Sending list of receivers")
 	case "functions":
 	    log.Printf("Client requesting functions from: %s", message.ReceiverName)
-	    err := c.hub.GetFunctions(message.ReceiverName)
+	    err := c.hub.GetFunctions(message.ReceiverName, c.id)
 	    if err != nil {
 		log.Printf("Error Getting Functions: %v", err.Error())
 		c.sendErrorResponse(err.Error())

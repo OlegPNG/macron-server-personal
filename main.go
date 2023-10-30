@@ -18,7 +18,8 @@ type Config struct {
 }
 type ServerConfig struct {
     AuthType    string  `toml:"auth_type"`
-    Password    string
+    Email       string  `toml:"email,omitempty"`
+    Password    string  `toml:"password"`
 }
 
 
@@ -104,12 +105,18 @@ func setupRoutes(hub *Hub) chi.Router {
         wsRouter.Get("/client", hub.HandlerClientPassword)
         wsRouter.Get("/receiver", hub.HandlerReceiverPassword)
     } else {
-        wsRouter.Get("/client", hub.HandlerClient)
-        wsRouter.Get("/receiver", hub.HandlerReceiver)
+        wsRouter.Get("/client", hub.ClientHandler)
+        //wsRouter.Get("/receiver", hub.HandlerReceiver)
     }
+
+    v2Router := chi.NewRouter()
+    v2Router.Post("/login", hub.LoginHandler)
+    v2Router.Get("/client", hub.ClientHandler)
+    v2Router.Get("/receiver", hub.ReceiverHandler)
 
     v1Router.Mount("/ws", wsRouter)
     router.Mount("/v1", v1Router)
+    router.Mount("/v2", v2Router)
     router.Get("/info", hub.HandlerInfo)
 
     fs := http.FileServer(http.Dir("./static/"))
@@ -144,7 +151,8 @@ func startServer() {
     }
 
     hub := Hub{
-        nil,
+        make(map[string]*Session),
+        make(map[string]*Client),
         make(map[string]*Receiver),
         config,
     }
@@ -157,6 +165,7 @@ func startServer() {
     }
 
     err = server.ListenAndServe()
+    //err = server.ListenAndServeTLS("server.crt", "server.key")
     if err != nil {
         log.Fatal(err)
     }
